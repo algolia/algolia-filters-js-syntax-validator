@@ -2,7 +2,7 @@ function Parser() {
     this.lexer = null;
 
     this.termType = 'Term_None';
-    this.termPos = 0;
+    this.firstTermToken = 0;
     this.foundOR = false;
     this.foundAND = false;
     this.tags = [];
@@ -74,7 +74,7 @@ function Parser() {
         if (this.parseTerm()) {
             do {
                 if (this.foundOR && previousType !== 'Term_None' && this.termType !== previousType) { // Different type in a OR
-                    this.lexer.get().beforePos = this.termPos; // Save the pos of the all term to be able to underline everything
+                    this.lexer.get().firstTermToken = this.firstTermToken; // Save first token of the term to be able to underline everything
                     this.unexpectedToken(this.lexer.get(), previousType);
                     console.error("filters: Different types are not allowed in the same OR.");
                     return false;
@@ -104,7 +104,6 @@ function Parser() {
 
     this.parseTerm = function () {
         this.termType = 'Term_None';
-        this.termPos = this.lexer.get().pos;
 
         const score = 1;
         if (this.lexer.get().type === 'Token_Open_Backet') { // ()
@@ -128,6 +127,7 @@ function Parser() {
             negative = true;
         }
         if (this.lexer.get().type === 'Token_String' || this.lexer.get().type === 'Token_Num') { // TAG or FACET or NUM
+            this.firstTermToken = this.lexer.get();
             const attributeNameToken = this.lexer.get();
             this.lexer.next();
             if (this.lexer.get().type === 'Token_Operator' || this.lexer.get().type === 'Token_Open_Angled_Bracket' || this.lexer.get().type === 'Token_Close_Angled_Bracket') { // NUM

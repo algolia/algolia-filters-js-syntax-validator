@@ -3,7 +3,9 @@ function Token(type, string, raw_string, pos) {
     this.value = string;
     this.raw_value = raw_string === null ? this.value : raw_string;
     this.pos = pos;
-    this.beforePos = pos;
+    this.extraPos = 0;
+    this.posWithHtml = pos;
+    this.firstTermToken = null;
     this.unexpectedMessage = '';
 
     this.tokensList = {

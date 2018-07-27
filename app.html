@@ -26,7 +26,7 @@
     // (type:a OR type:a) AND type OR D AND price:"10 \"TO 100"
     // color:blue OR color:red OR price:10 TO 20
 
-    $('#filters-input-editor').on('change keyup paste', function (e) {
+    $('#filters-input-editor').on('input propertychange', function (e) {
         const parser = new Parser();
 
         let code = $(this).prop('value');
@@ -35,24 +35,47 @@
 
         let extraPos = 0;
         let errorMessage = '';
-        parser.lexer.tokens.forEach(function (token) {
+
+        for (let i = 0; i < parser.lexer.tokens.length; i++) {
+            const token = parser.lexer.tokens[i];
+            const nextToken = i + 1 === parser.lexer.tokens.length ? null : parser.lexer.tokens[i + 1];
+            const prevToken = i === 0 ? null : parser.lexer.tokens[i - 1];
             const classes = ['token', token.type];
 
             if (token.unexpectedMessage) {
-                classes.push('unexpected');
-                errorMessage = `<div class="token-error-message">${token.unexpectedMessage}</div>`;
-                console.log(token);
+                if (token.firstTermToken === null) {
+                    classes.push('unexpected');
+                }
+                errorMessage = `<div class="token-error-message">→ ${token.unexpectedMessage}</div>`;
+                //console.log(token);
             }
 
-            const beforeText = code.substr(0, token.pos + extraPos);
+            const beforeText = code.substring(0, token.pos + extraPos);
             const middleText = token.raw_value;
             const newMiddleText = `<span class="${classes.join(' ')}">${token.raw_value}</span>`;
-            const endText = code.substr(token.pos + token.raw_value.length + extraPos, code.length - (token.pos + token.raw_value.length + extraPos));
+            const endText = code.substring(token.pos + token.raw_value.length + extraPos, code.length);
 
             code = beforeText + newMiddleText + endText;
 
-            extraPos += newMiddleText.length - middleText.length;
-        });
+            const newExtraPos = newMiddleText.length - middleText.length;
+            extraPos += newExtraPos;
+            token.extraPos = newExtraPos;
+
+            if (token.unexpectedMessage && token.firstTermToken && prevToken) {
+                const beforeError = code.substring(0, token.firstTermToken.posWithHtml);
+                const middleError = code.substring(token.firstTermToken.posWithHtml, prevToken.posWithHtml + prevToken.raw_value.length + prevToken.extraPos);
+                const newMiddleError = `<span class="unexpected">${middleError}</span>`;
+                const endError = code.substring(prevToken.posWithHtml + prevToken.raw_value.length + prevToken.extraPos, code.length);
+
+                extraPos += newMiddleError.length - middleError.length;
+
+                code = beforeError + newMiddleError + endError;
+            }
+
+            if (nextToken) {
+                nextToken.posWithHtml = nextToken.pos + extraPos;
+            }
+        }
 
         code = `<div>${code}</div>`;
 
@@ -123,13 +146,11 @@
 
     .token-error-message {
         margin-top: 24px;
-        border-left: solid 2px red;
-        padding-left: 4px;
         width: 100%;
         color: red;
     }
 
-    .token.unexpected {
+    .unexpected {
         border-bottom: solid 2px red;
     }
 
