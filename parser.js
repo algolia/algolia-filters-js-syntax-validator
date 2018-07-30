@@ -2,12 +2,18 @@ function Parser() {
     this.lexer = null;
 
     this.termType = 'Term_None';
-    this.firstTermToken = 0;
+    this.firstTermToken = null;
     this.foundOR = false;
     this.foundAND = false;
     this.tags = [];
     this.numericsFilters = [];
     this.facetFilters = [];
+
+    this.error = function (token, errorMessage) {
+        console.error(errorMessage);
+        token.unexpectedMessage = errorMessage;
+        token.errorStop = true;
+    };
 
     this.unexpectedToken = function(token, expected) {
         let errorMessage = "Unexpected token " + token.toString();
@@ -18,9 +24,7 @@ function Parser() {
 
         errorMessage += " expected " + token.tokenToString(expected) + " at col " + token.pos;
 
-        console.error(errorMessage);
-
-        token.unexpectedMessage = errorMessage;
+        this.error(token, errorMessage);
     };
 
     this.parse = function (s) {
@@ -33,6 +37,8 @@ function Parser() {
         if (this.lexer.lex(s) === false) {
             console.error("filters: Not allowed " + this.lexer.get(0).toString() + " at col " + this.lexer.get(0).pos)
         }
+
+        this.lexer.next(); // Skip First_Token
 
         if (this.parseAnd()) {
             if (this.lexer.get().type !== 'Token_EOF') {
@@ -56,7 +62,7 @@ function Parser() {
 
                 this.lexer.next();
                 this.termType = 'Term_None';
-                //this.foundOR = false;
+                this.foundOR = false;
                 this.foundAND = false;
 
                 if (!this.parseIntermediate(false)) { // TERM AND ...
@@ -74,9 +80,8 @@ function Parser() {
         if (this.parseTerm()) {
             do {
                 if (this.foundOR && previousType !== 'Term_None' && this.termType !== previousType) { // Different type in a OR
-                    this.lexer.get().firstTermToken = this.firstTermToken; // Save first token of the term to be able to underline everything
-                    this.unexpectedToken(this.lexer.get(), previousType);
-                    console.error("filters: Different types are not allowed in the same OR.");
+                    this.firstTermToken.errorStart = true; // Error started at firstToken
+                    this.error(this.lexer.get(-1), "Different types are not allowed in the same OR.");
                     return false;
                 }
                 previousType = this.termType;
@@ -87,8 +92,7 @@ function Parser() {
                     this.foundOR = true;
                 }
                 if (this.foundOR && this.foundAND) {
-                    this.unexpectedToken(this.lexer.get(), 'Token_AND')
-                    console.error("filters: filter (X AND Y) OR Z is not allowed, only (X OR Y) AND Z is allowed");
+                    this.error(this.lexer.get(), "filter (X AND Y) OR Z is not allowed, only (X OR Y) AND Z is allowed");
                     return false;
                 }
                 this.lexer.next();
@@ -117,10 +121,10 @@ function Parser() {
             }
 
             this.foundOR = false;
-
             this.lexer.next();
             return true;
         }
+
         let negative = false;
         if (this.lexer.get().type === 'Token_NOT') {
             this.lexer.next();

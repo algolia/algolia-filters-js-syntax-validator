@@ -1,11 +1,11 @@
 function Lexer() {
     this.tokens = [];
     this.currentPos = 0;
+    this.lastToken = null;
 
     this.get = function (i) {
-        if (i === undefined) {
-            i = 0;
-        }
+        if (i === undefined) i = 0;
+        if (this.currentPos + i >= this.tokens.length) return this.tokens[this.tokens.length - 1];
         return this.tokens[this.currentPos + i];
     };
 
@@ -24,7 +24,7 @@ function Lexer() {
     this.readTokenValue = function (s, i) {
         let onlyNum = true;
         let nbDot = 0;
-        let startPos = i;
+        let startPos;
 
         for (startPos = i; startPos < s.length && (!this.isSeparator(s[startPos])); startPos++) {
             onlyNum = onlyNum && ((s[startPos] >= '0' && s[startPos] <= '9') || (startPos === i && s[startPos] === '-') || (startPos > i && s[startPos] === '.' && (++nbDot) === 1));
@@ -46,7 +46,7 @@ function Lexer() {
     this.readQuotedString = function (s, i) {
         const quoteType = s[i];
         let escape = false;
-        let startPos = i + 1;
+        let startPos;
 
         for (startPos = i + 1; startPos < s.length; startPos++) {
             if (s[startPos] === quoteType && !escape) {
@@ -57,7 +57,7 @@ function Lexer() {
                 }
             }
 
-            if (startPos + 1 < s.length && s[startPos] === '\\' && s[startPos + 1] === '\\') {
+            if (s[startPos] === '\\') {
                 startPos++;
                 escape = !escape;
             }
@@ -96,13 +96,24 @@ function Lexer() {
         }
     };
 
+    this.addToken = function (token) {
+        this.tokens.push(token);
+        this.lastToken = token;
+    };
+
     this.lex = function(s) {
+        console.log("\"",s, "\"");
         let i = 0;
-        while (i < s.length && s[i].search(/\s/) !== -1) i++;
+        this.addToken(new Token('First_Token', '', null, 0));
+
+        while (i < s.length && s[i] === ' ') {
+            this.lastToken.afterSeparators += s[i];
+            i++;
+        }
 
         while (i < s.length) {
             let token = this.readToken(s, i);
-            this.tokens.push(token);
+            this.addToken(token);
 
             if (token.type === 'Token_Error') {
                 this.currentPos = this.tokens.length - 1;
@@ -110,9 +121,12 @@ function Lexer() {
             }
             i += token.raw_value.length;
 
-            while (i < s.length && s[i].search(/\s/) !== -1) i++;
+            while (i < s.length && s[i] === ' ') {
+                this.lastToken.afterSeparators += s[i];
+                i++;
+            }
         }
-        this.tokens.push(new Token('Token_EOF', 'E', null, s.length));
+        this.addToken(new Token('Token_EOF', 'E', null, s.length));
 
         console.log(this.tokens);
 
