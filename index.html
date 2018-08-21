@@ -20,12 +20,14 @@
     //parser.parse("((type:a OR type:b) AND type:c)");
     //parser.parse("type:a OR C AND type:c OR C");
     //parser.parse("(type:a OR type:b) AND AND type:c");
-    //parser.parse("!A AND C");
     //parser.parse("C:A");
     //parser.parse("attribute:"She said \\\"Hello World\\\"")
 
     // (type:a OR type:a) AND type OR D AND price:"10 \"TO 100"
     // color:blue OR color:red OR price:10 TO 20
+
+    // TO FIX
+    //parser.parse("!A AND C");
 
     $('#filters-input-editor').on('input propertychange', function (e) {
         const parser = new Parser();
