@@ -116,6 +116,7 @@ function Lexer() {
             this.addToken(token);
 
             if (token.type === 'Token_Error') {
+                token.raw_value = s.substr(i, s.length - i);
                 this.currentPos = this.tokens.length - 1;
                 return false;
             }
