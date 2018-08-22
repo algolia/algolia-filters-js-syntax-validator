@@ -1,7 +1,7 @@
 <html>
     <body>
         <div id="filters-input-wrapper">
-            <textarea spellcheck="false" id="filters-input-editor"></textarea>
+            <textarea spellcheck="false" id="filters-input-editor">duration<100 OR category:tv</textarea>
             <pre id="filters-input-result"></pre>
         </div>
 
@@ -41,7 +41,6 @@
 
         for (let i = 0; i < parser.lexer.tokens.length; i++) {
             const token = parser.lexer.tokens[i];
-            console.log(token);
             const tokenClasses = ['token', token.type];
             const tokenSeparatorClasses = ['token-spaces'];
 
@@ -66,6 +65,8 @@
         $('#filters-input-result').html(s);
     });
 
+    $('#filters-input-editor').trigger('input');
+
     //console.log(parser.tags);
     //console.log(parser.numericsFilters);
     //console.log(parser.facetFilters);
@@ -81,7 +82,7 @@
 
     #filters-input-wrapper {
         width: 500px;
-        height: 200px;
+        height: 300px;
         border: 1px solid #ccc;
         position: relative;
     }

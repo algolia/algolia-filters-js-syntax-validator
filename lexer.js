@@ -51,14 +51,13 @@ function Lexer() {
         for (startPos = i + 1; startPos < s.length; startPos++) {
             if (s[startPos] === quoteType && !escape) {
                 if (startPos - i <= 1) { // ""
-                    return new Token('Token_Empty_Str', '', null, startPos);
+                    return new Token('Token_Empty_Str', quoteType + quoteType, null, startPos);
                 } else {
                     return new Token('Token_String', s.substr(i + 1, startPos - i - 1), s.substr(i, startPos - i + 1), i);
                 }
             }
 
             if (s[startPos] === '\\') {
-                startPos++;
                 escape = !escape;
             }
             else {
@@ -102,7 +101,6 @@ function Lexer() {
     };
 
     this.lex = function(s) {
-        console.log("\"",s, "\"");
         let i = 0;
         this.addToken(new Token('First_Token', '', null, 0));
 

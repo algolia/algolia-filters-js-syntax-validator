@@ -3,8 +3,6 @@ function Parser() {
 
     this.termType = 'Term_None';
     this.firstTermToken = null;
-    this.foundOR = false;
-    this.foundAND = false;
     this.tags = [];
     this.numericsFilters = [];
     this.facetFilters = [];
@@ -70,7 +68,7 @@ function Parser() {
 
             for (let i = 0; i < this.groups.length - 1; i++) {
                 if (this.groups[i].type === 'Token_OR') {
-                    this.error(this.groups[i], "filter (X AND Y) OR Z is not allowed, only (X OR Y) AND Z is allowed");
+                    this.error(this.groups[i], "filter X OR (Y AND Z) is not allowed, only X AND (Y OR Z) is allowed");
                     return false;
                 }
             }
@@ -85,6 +83,29 @@ function Parser() {
         return true;
     };
 
+    this.getSameOrError = function (expectedType) {
+        let errorMessage = 'Different types are not allowed in the same OR.';
+
+        if (expectedType === 'Term_Numeric') {
+            errorMessage += '\nExpected a numeric filter which needs to have one of the following form:';
+            errorMessage += '\n - numeric_attr_name=10';
+            errorMessage += '\n - numeric_attr_name>10';
+            errorMessage += '\n - numeric_attr_name>=10';
+            errorMessage += '\n - numeric_attr_name<10';
+            errorMessage += '\n - numeric_attr_name<=10';
+            errorMessage += '\n - numeric_attr_name!=10';
+            errorMessage += '\n - numeric_attr_name:10 TO 20';
+        } else if (expectedType === 'Term_Facet') {
+            errorMessage += '\nExpected a facet filter which needs to have this form:';
+            errorMessage += '\n - facet_name:facet_value';
+        } else if (expectedType === 'Term_Tag') {
+            errorMessage += '\n - _tags:tag_value';
+            errorMessage += '\n - tag_value';
+        }
+
+        return errorMessage;
+    };
+
     this.parseOr = function () {
         this.groups.push('NONE');
         let lastType = 'NONE';
@@ -96,7 +117,7 @@ function Parser() {
 
             if (lastType !== 'NONE' && this.termType !== lastType) {
                 this.firstTermToken.errorStart = true; // Error started at firstToken
-                this.error(this.lexer.get(-1), 'Different types are not allowed in the same OR.');
+                this.error(this.lexer.get(-1), this.getSameOrError(lastType));
                 return false;
             }
 
@@ -137,7 +158,6 @@ function Parser() {
                 return false;
             }
 
-            this.foundOR = false;
             this.lexer.next();
             return true;
         }
