@@ -1,21 +1,71 @@
-function Parser() {
-    this.lexer = null;
+import Lexer from './lexer'
 
-    this.termType = 'Term_None';
-    this.firstTermToken = null;
-    this.tags = [];
-    this.numericsFilters = [];
-    this.facetFilters = [];
-    this.groups = [];
-    this.lastGroup = 'NONE';
+export default class Parser {
+    constructor() {
+        this.lexer = null;
 
-    this.error = function (token, errorMessage) {
-        console.error(errorMessage);
+        this.termType = 'Term_None';
+        this.firstTermToken = null;
+        this.tags = [];
+        this.numericsFilters = [];
+        this.facetFilters = [];
+        this.groups = [];
+        this.lastGroup = 'NONE';
+    }
+
+    parse(s) {
+        let response = {
+            html: '',
+            errorMessage: '',
+        };
+
+        this.lexer = new Lexer();
+
+        if (s.length === 0) {
+            return response;
+        }
+
+        if (this.lexer.lex(s) === false) {
+            response.errorMessage = "Not allowed " + this.lexer.get(0).toString() + " at col " + this.lexer.get(0).pos;
+        }
+
+        this.lexer.next(); // Skip First_Token
+
+        if (this.parseAnd()) {
+            if (this.lexer.get().type !== 'Token_EOF') {
+                this.unexpectedToken(this.lexer.get(), 'Token_EOF');
+            }
+        }
+
+        let isValid = true;
+        response.tokens = this.lexer.tokens.map(function (token) {
+            if (token.errorStart || (!isValid)) {
+                isValid = false;
+                token.cssClasses.push('unexpected');
+            }
+
+            if (token.errorStop) {
+                token.cssClasses.push('unexpected');
+                isValid = true;
+            }
+
+            if (!isValid) token.afterSeparatorsCssClasses.push('unexpected');
+            if (token.unexpectedMessage) response.errorMessage = token.unexpectedMessage;
+
+            response.html += `<span class="${token.cssClasses.join(' ')}">${token.raw_value}</span><span class="${token.afterSeparatorsCssClasses.join(' ')}">${token.afterSeparators}</span>`;
+
+            return token;
+        });
+
+        return response
+    };
+
+    error(token, errorMessage) {
         token.unexpectedMessage = errorMessage;
         token.errorStop = true;
     };
 
-    this.unexpectedToken = function(token, expected) {
+    unexpectedToken(token, expected) {
         let errorMessage = "Unexpected token " + token.toString();
 
         if (token.value.length > 0 && (token.type === 'Token_String' || token.type === 'Token_Num')) {
@@ -27,30 +77,7 @@ function Parser() {
         this.error(token, errorMessage);
     };
 
-    this.parse = function (s) {
-        this.lexer = new Lexer();
-
-        if (s.length === 0) {
-            return true;
-        }
-
-        if (this.lexer.lex(s) === false) {
-            console.error("filters: Not allowed " + this.lexer.get(0).toString() + " at col " + this.lexer.get(0).pos)
-        }
-
-        this.lexer.next(); // Skip First_Token
-
-        if (this.parseAnd()) {
-            if (this.lexer.get().type !== 'Token_EOF') {
-                this.unexpectedToken(this.lexer.get(), 'Token_EOF');
-                return false;
-            }
-            return true;
-        }
-        return false;
-    };
-
-    this.parseAnd = function () {
+    parseAnd() {
         this.groups.push('NONE');
 
         do {
@@ -83,7 +110,7 @@ function Parser() {
         return true;
     };
 
-    this.getSameOrError = function (expectedType) {
+    getSameOrError(expectedType) {
         let errorMessage = 'Different types are not allowed in the same OR.';
 
         if (expectedType === 'Term_Numeric') {
@@ -106,7 +133,7 @@ function Parser() {
         return errorMessage;
     };
 
-    this.parseOr = function () {
+    parseOr() {
         this.groups.push('NONE');
         let lastType = 'NONE';
 
@@ -144,7 +171,7 @@ function Parser() {
         return true;
     };
 
-    this.parseTerm = function () {
+    parseTerm() {
         this.termType = 'Term_None';
 
         const score = 1;
@@ -255,7 +282,7 @@ function Parser() {
         return false;
     };
 
-    this.parseOptions = function (score) {
+    parseOptions(score) {
         if (this.lexer.get().type !== 'Token_Open_Angled_Bracket') {
             // The options for a filter are optional
             return true;
@@ -276,7 +303,7 @@ function Parser() {
         return true;
     };
 
-    this.parseOption = function (score) {
+    parseOption(score) {
         if (this.lexer.get().type !== 'Token_String') {
             this.unexpectedToken(this.lexer.get(), 'Token_String');
             return false;
@@ -303,11 +330,11 @@ function Parser() {
         }
     };
 
-    this.negateOperator = function (operatorToken) {
+    negateOperator(operatorToken) {
 
     };
 
-    this.isOption = function (token) {
+    isOption(token) {
         return token.value === 'score';
     };
 }

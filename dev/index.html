@@ -1,0 +1,27 @@
+<html>
+    <body>
+        <div id="filters-input-wrapper">
+            <textarea spellcheck="false" id="filters-input-editor">duration<100 OR category:tv</textarea>
+            <pre id="filters-input-result"></pre>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+        <script src="../dist/algolia-filters-js.umd.js"></script>
+        <link href="app.css" rel=stylesheet />
+    </body>
+</html>
+<script>
+    const input = $('#filters-input-editor');
+    const result = $('#filters-input-result');
+    input.on('input propertychange', function (e) {
+        const parser = new Parser();
+        const response = parser.parse($(this).prop('value'));
+
+        let html = `<div>${response.html}</div>`;
+
+        if (response.errorMessage.length > 0) html += `<div class="token-error-message">→ ${response.errorMessage}</div>`;
+        result.html(html);
+    });
+
+    input.trigger('input');
+</script>
