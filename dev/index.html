@@ -13,6 +13,7 @@
 <script>
     const input = $('#filters-input-editor');
     const result = $('#filters-input-result');
+
     input.on('input propertychange', function (e) {
         const parser = new Parser();
         const response = parser.parse($(this).prop('value'));
