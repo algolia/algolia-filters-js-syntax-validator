@@ -1,9 +1,8 @@
 import Lexer from './lexer'
 
 export default class Parser {
-    constructor() {
-        this.lexer = null;
-
+    parse(s) {
+        this.lexer = new Lexer();
         this.termType = 'Term_None';
         this.firstTermToken = null;
         this.tags = [];
@@ -11,15 +10,11 @@ export default class Parser {
         this.facetFilters = [];
         this.groups = [];
         this.lastGroup = 'NONE';
-    }
 
-    parse(s) {
         let response = {
             html: '',
             errorMessage: '',
         };
-
-        this.lexer = new Lexer();
 
         if (s.length === 0) {
             return response;
@@ -126,6 +121,7 @@ export default class Parser {
             errorMessage += '\nExpected a facet filter which needs to have this form:';
             errorMessage += '\n - facet_name:facet_value';
         } else if (expectedType === 'Term_Tag') {
+            errorMessage += '\nExpected a tag filter which needs to have this form:';
             errorMessage += '\n - _tags:tag_value';
             errorMessage += '\n - tag_value';
         }
@@ -200,7 +196,7 @@ export default class Parser {
             this.lexer.next();
             if (this.lexer.get().type === 'Token_Operator' || this.lexer.get().type === 'Token_Open_Angled_Bracket' || this.lexer.get().type === 'Token_Close_Angled_Bracket') { // NUM
                 const operatorToken = this.lexer.get();
-                if (this.lexer.get().type === 'Token_Open_Angled_Bracket' && this.isOption(this.lexer.get(2))) {
+                if (this.lexer.get().type === 'Token_Open_Angled_Bracket' && this.isOption(this.lexer.get(1))) {
                     // Tag with options
                     if (!this.parseOptions(score))
                         return false;
@@ -290,11 +286,13 @@ export default class Parser {
         this.lexer.next();
         let hasNext = true;
         do {
-            score = this.parseOption(score);
-            if (score === false) {
+            if (!this.parseOption(score)) {
                 return false;
             }
-            hasNext = this.lexer.get().type === 'Token_Coma';
+            hasNext = false;
+            if (this.lexer.get().type === 'Token_Coma') {
+                hasNext = true;
+            }
         } while (hasNext);
         if (this.lexer.get().type !== 'Token_Close_Angled_Bracket') {
             this.unexpectedToken(this.lexer.get(), 'Token_Close_Angled_Bracket');

@@ -17,6 +17,8 @@
         const parser = new Parser();
         const response = parser.parse($(this).prop('value'));
 
+        console.log(response.tokens);
+
         let html = `<div>${response.html}</div>`;
 
         if (response.errorMessage.length > 0) html += `<div class="token-error-message">→ ${response.errorMessage}</div>`;
