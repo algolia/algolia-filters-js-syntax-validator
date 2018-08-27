@@ -17,6 +17,7 @@ then
 fi
 
 git pull -r origin develop
+git push origin develop
 git checkout master
 git pull origin master
 git merge --ff-only develop
