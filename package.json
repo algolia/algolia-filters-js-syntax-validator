@@ -1,6 +1,6 @@
 {
   "name": "algolia-filters-js",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "main": "dist/algolia-filters-js.cjs.js",
   "module": "dist/algolia-filters-js.esm.js",
   "browser": "dist/algolia-filters-js.umd.js",
