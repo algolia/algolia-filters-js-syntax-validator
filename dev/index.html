@@ -28,6 +28,8 @@
 
         let html = `<div>${response.html}</div>`;
 
+        console.log(response.html);
+
         if (inputValue.length > 0) {
             if (response.errorMessage.length > 0) message.html(`<div class="error">→ ${response.errorMessage}</div>`);
             else message.html(`<div class="valid">→ the filter is valid</div>`);

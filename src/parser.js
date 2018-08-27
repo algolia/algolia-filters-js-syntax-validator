@@ -9,7 +9,8 @@ export default class Parser {
         this.numericsFilters = [];
         this.facetFilters = [];
         this.groups = [];
-        this.lastGroup = 'NONE';
+        this.foundAND = false;
+        this.foundOR = false;
 
         let response = {
             html: '',
@@ -72,37 +73,63 @@ export default class Parser {
         this.error(token, errorMessage);
     };
 
-    parseAnd() {
-        this.groups.push('NONE');
-
-        do {
-            if (!this.parseOr()) {
-                return false;
-            }
-
-            if (this.lexer.get().type !== 'Token_AND') {
-                break;
-            }
-
-            this.groups[this.groups.length - 1] = this.lexer.get();
-            this.lexer.next();
-
-
-            for (let i = 0; i < this.groups.length - 1; i++) {
-                if (this.groups[i].type === 'Token_OR') {
-                    this.error(this.groups[i], "filter X OR (Y AND Z) is not allowed, only X AND (Y OR Z) is allowed");
+    parseIntermediate(parseAnd) {
+        let previousType = this.termType; // Store the previous type for A OR (B OR C)
+        if (this.parseTerm()) {
+            do {if (this.foundOR && previousType !== 'Term_None' && this.termType !== previousType) { // Different type in a OR
+                    this.firstTermToken.errorStart = true;
+                    this.error(this.lexer.get(-1), this.getSameOrError(previousType));
                     return false;
                 }
-            }
-        } while (true);
+                previousType = this.termType;
+                if (this.lexer.get().type !== 'Token_OR' && (!parseAnd || this.lexer.get().type !== 'Token_AND')) {
+                    break;
+                }
+                if (this.lexer.get().type === 'Token_AND') {
+                    this.foundAND = true;
+                } else {
+                    this.foundOR = true;
+                }
+                if (this.foundOR && this.foundAND) {
+                    this.error(this.lexer.get(), "filter (X AND Y) OR Z is not allowed, only (X OR Y) AND Z is allowed");
+                    return false;
+                }
+                this.lexer.next();
+                if (!this.parseTerm()) { // TERM OR ...
+                    return false;
+                }
 
-        if (this.groups[this.groups.length - 1] !== 'NONE') {
-            this.lastGroup = this.groups[this.groups.length - 1];
+            } while (true);
+            return true;
+        } else {
+            return false;
         }
+    }
 
-        this.groups.pop();
+    parseAnd() {
+        this.termType = 'Term_None';
+        this.foundOR = false;
+        this.foundAND = false;
 
-        return true;
+        if (this.parseIntermediate(false)) {
+            do {
+                if (this.lexer.get().type !== 'Token_AND') {
+                    break;
+                }
+
+                this.lexer.next();
+                this.termType = 'Term_None';
+                this.foundOR = false;
+                this.foundAND = false;
+
+                if (!this.parseIntermediate(false)) { // TERM AND ...
+                    return false;
+                }
+            } while (true);
+            return true;
+        } else {
+            return false;
+        }
     };
 
     getSameOrError(expectedType) {
@@ -129,51 +156,12 @@ export default class Parser {
         return errorMessage;
     };
 
-    parseOr() {
-        this.groups.push('NONE');
-        let lastType = 'NONE';
-
-        do {
-            if (!this.parseTerm()) {
-                return false;
-            }
-
-            if (lastType !== 'NONE' && this.termType !== lastType) {
-                this.firstTermToken.errorStart = true; // Error started at firstToken
-                this.error(this.lexer.get(-1), this.getSameOrError(lastType));
-                return false;
-            }
-
-            lastType = this.termType;
-
-            if (this.lexer.get().type !== 'Token_OR') {
-                break;
-            }
-
-            this.groups[this.groups.length - 1] = this.lexer.get();
-            this.lexer.next();
-
-            if (this.lastGroup.type === 'Token_AND') {
-                this.error(this.lastGroup, "filter (X AND Y) OR Z is not allowed, only (X OR Y) AND Z is allowed");
-            }
-        } while (true);
-
-        if (this.groups[this.groups.length - 1] !== 'NONE') {
-            this.lastGroup = this.groups[this.groups.length - 1];
-        }
-
-        this.groups.pop();
-
-        return true;
-    };
-
     parseTerm() {
-        this.termType = 'Term_None';
 
         const score = 1;
         if (this.lexer.get().type === 'Token_Open_Backet') { // ()
             this.lexer.next();
-            if (!this.parseAnd())
+            if (!this.parseIntermediate(true))
                 return false;
 
             if (this.lexer.get().type !== 'Token_Close_Bracket') {
@@ -184,6 +172,7 @@ export default class Parser {
             this.lexer.next();
             return true;
         }
+        this.termType = 'Term_None';
 
         let negative = false;
         if (this.lexer.get().type === 'Token_NOT') {
