@@ -12,7 +12,7 @@ html {
     position: relative;
 }
 
-textarea {
+#filters-input-editor {
     border: none;
     overflow: auto;
     outline: none;
@@ -23,10 +23,11 @@ textarea {
     resize: none;
 }
 
-pre, textarea {
+#filters-input-result,  #filters-input-editor {
     position: absolute;
     top: 0;
     left: 0;
+    overflow-y: scroll;
     width: 100%;
     height: 100%;
     margin: 0;
@@ -35,6 +36,7 @@ pre, textarea {
     font-size: 13px;
     font-family: monospace;
     padding: 5px;
+    line-height: 18px;
 }
 
 #filters-input-editor {
@@ -54,10 +56,18 @@ pre, textarea {
     padding-bottom: 2px;
 }
 
-.token-error-message {
-    margin-top: 24px;
-    width: 100%;
+#message {
+    width: 500px;
+    margin-top: 10px;
+    white-space: pre-wrap;
+}
+
+#message .error {
     color: red;
+}
+
+#message .valid {
+    color: green;
 }
 
 .unexpected {

@@ -5,6 +5,8 @@
             <pre id="filters-input-result"></pre>
         </div>
 
+        <pre id="message"></pre>
+
         <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
         <script src="../dist/algolia-filters-js.umd.js"></script>
         <link href="app.css" rel=stylesheet />
@@ -13,16 +15,24 @@
 <script>
     const input = $('#filters-input-editor');
     const result = $('#filters-input-result');
+    const message = $('#message');
+
+    input.on('scroll', function () {
+        result.scrollTop($(this).scrollTop());
+    });
 
     input.on('input propertychange', function (e) {
         const parser = new Parser();
-        const response = parser.parse($(this).prop('value'));
-
-        console.log(response.tokens);
+        const inputValue = $(this).prop('value');
+        const response = parser.parse(inputValue);
 
         let html = `<div>${response.html}</div>`;
 
-        if (response.errorMessage.length > 0) html += `<div class="token-error-message">→ ${response.errorMessage}</div>`;
+        if (inputValue.length > 0) {
+            if (response.errorMessage.length > 0) message.html(`<div class="error">→ ${response.errorMessage}</div>`);
+            else message.html(`<div class="valid">→ the filter is valid</div>`);
+        } else message.html('');
+
         result.html(html);
     });
 
