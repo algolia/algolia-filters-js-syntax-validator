@@ -1,6 +1,6 @@
 {
   "name": "algolia-filters-js-syntax-validator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/algolia-filters-js-syntax-validator.cjs.js",
   "module": "dist/algolia-filters-js-syntax-validator.esm.js",
   "browser": "dist/algolia-filters-js-syntax-validator.umd.js",
