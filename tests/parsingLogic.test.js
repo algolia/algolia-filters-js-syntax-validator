@@ -125,7 +125,7 @@ describe('Parser', () => {
     expect(parser.parse("a OR b AND (tags:movie AND price:10 TO 20)")).toBeValid();
       // NOT YET VALID //expect(parser.parse("(a OR b AND c) AND d AND e")).toBeValid();
     expect(parser.parse("(((tag1) OR tag2) OR name:value)")).toBeInvalidWith("Different types are not allowed in the same OR.\nExpected a tag filter which needs to have this form:\n - _tags:tag_value\n - tag_value");
-    expect(parser.parse("(tag1 OR (tag  2 OR (name:value)))")).toBeInvalidWith("Different types are not allowed in the same OR.\nExpected a tag filter which needs to have this form:\n - _tags:tag_value\n - tag_value");
+    expect(parser.parse("(tag1 OR (tag2 OR (name:value)))")).toBeInvalidWith("Different types are not allowed in the same OR.\nExpected a tag filter which needs to have this form:\n - _tags:tag_value\n - tag_value");
     expect(parser.parse("(((tag1 OR NOT tag2))) OR (name:value)")).toBeInvalidWith("Different types are not allowed in the same OR.\nExpected a tag filter which needs to have this form:\n - _tags:tag_value\n - tag_value");
     expect(parser.parse("(a AND b OR c) OR d")).toBeInvalidWith('filter (X AND Y) OR Z is not allowed, only (X OR Y) AND Z is allowed');
     expect(parser.parse("a OR (b OR c AND d)")).toBeInvalidWith('filter (X AND Y) OR Z is not allowed, only (X OR Y) AND Z is allowed');
