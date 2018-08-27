@@ -1,13 +1,13 @@
 {
-  "name": "algolia-filters-js",
+  "name": "algolia-filters-js-syntax-validator",
   "version": "0.0.1",
-  "main": "dist/algolia-filters-js.cjs.js",
-  "module": "dist/algolia-filters-js.esm.js",
-  "browser": "dist/algolia-filters-js.umd.js",
+  "main": "dist/algolia-filters-js-syntax-validator.cjs.js",
+  "module": "dist/algolia-filters-js-syntax-validator.esm.js",
+  "browser": "dist/algolia-filters-js-syntax-validator.umd.js",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/algolia/filters-js"
+    "url": "https://github.com/algolia/algolia-filters-js-syntax-validator"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-rc.2",
