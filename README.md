@@ -28,7 +28,8 @@ there is an error in the output.
 ### Yarn
 
 ```js
-// `npm install algolia-filters-js-syntax-validator --save` OR// ` 
+// `npm install algolia-filters-js-syntax-validator --save`
+// or
 // `yarn add algolia-filters-js-syntax-validator`
 
 const Parser = require('algolia-filters-js-syntax-validator');
