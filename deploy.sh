@@ -18,9 +18,15 @@ fi
 
 git pull -r origin develop
 git push origin develop
+
 git checkout master
 git pull origin master
 git merge --ff-only develop
 git push origin master
+
+git checkout gh-pages
+git pull origin gh-pages
+git merge --ff-only develop
+git subtree push --prefix dev origin gh-pages
+
 git checkout develop
-#yarn publish
