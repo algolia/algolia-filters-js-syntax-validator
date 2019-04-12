@@ -1,0 +1,36 @@
+version: 2
+jobs:
+  build:
+    docker:
+    - image: algolia/docs-docker-image:v1
+
+    working_directory: ~/repo
+
+    steps:
+    - checkout
+
+    # Download and cache dependencies
+    - restore_cache:
+        keys:
+        - v2-dependencies-{{ checksum "yarn.lock" }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
+
+    - run:
+        name: install dependencies
+        command: |
+          yarn install --ignore-engines
+
+    - run:
+        name: build onboarding
+        command: |
+          yarn test
+
+    - save_cache:
+        paths:
+        - ./node_modules
+        - ~/.cache/yarn
+        key: v2-dependencies-{{ checksum "yarn.lock" }}-{{ .Environment.CIRCLE_BUILD_NUM }}
+workflows:
+  version: 2
+  build:
+    jobs:
+    - build
