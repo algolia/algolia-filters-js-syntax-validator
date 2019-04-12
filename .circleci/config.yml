@@ -9,7 +9,6 @@ jobs:
     steps:
     - checkout
 
-    # Download and cache dependencies
     - restore_cache:
         keys:
         - v2-dependencies-{{ checksum "yarn.lock" }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
