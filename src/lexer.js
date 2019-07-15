@@ -7,8 +7,7 @@ export default class Lexer {
     this.lastToken = null;
   }
 
-  get(i) {
-    if (i === undefined) i = 0;
+  get(i = 0) {
     if (this.currentPos + i >= this.tokens.length)
       return this.tokens[this.tokens.length - 1];
     return this.tokens[this.currentPos + i];

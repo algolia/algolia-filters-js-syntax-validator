@@ -1,8 +1,8 @@
 export default class Token {
-  constructor(type, string, raw_string, pos) {
+  constructor(type, string, rawString, pos) {
     this.type = type;
     this.value = string;
-    this.raw_value = raw_string === null ? this.value : raw_string;
+    this.raw_value = rawString === null ? this.value : rawString;
     this.pos = pos;
     this.errorStart = false;
     this.errorStop = false;

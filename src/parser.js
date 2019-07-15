@@ -368,9 +368,9 @@ export default class Parser {
         this.unexpectedToken(this.lexer.get(), 'Token_Num');
         return false;
       }
-      score = this.lexer.get().value;
+      const newScore = this.lexer.get().value;
       this.lexer.next();
-      return score;
+      return newScore;
     } else {
       this.unexpectedToken(optionNameToken, '\\"score\\"');
       return false;
