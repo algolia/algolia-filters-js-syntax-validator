@@ -12,9 +12,9 @@ export default class Parser {
     this.foundAND = false;
     this.foundOR = false;
 
-    let response = {
+    const response = {
       html: '',
-      errorMessage: ''
+      errorMessage: '',
     };
 
     if (s.length === 0) {
@@ -22,11 +22,9 @@ export default class Parser {
     }
 
     if (this.lexer.lex(s) === false) {
-      response.errorMessage =
-        'Not allowed ' +
-        this.lexer.get(0).toString() +
-        ' at col ' +
-        this.lexer.get(0).pos;
+      response.errorMessage = `Not allowed ${this.lexer
+        .get(0)
+        .toString()} at col ${this.lexer.get(0).pos}`;
     }
 
     this.lexer.next(); // Skip First_Token
@@ -71,17 +69,18 @@ export default class Parser {
   }
 
   unexpectedToken(token, expected) {
-    let errorMessage = 'Unexpected token ' + token.toString();
+    let errorMessage = `Unexpected token ${token.toString()}`;
 
     if (
       token.value.length > 0 &&
       (token.type === 'Token_String' || token.type === 'Token_Num')
     ) {
-      errorMessage += '(' + token.value.replace(/\n/g, '\u21b5') + ')';
+      errorMessage += `(${token.value.replace(/\n/g, '\u21b5')})`;
     }
 
-    errorMessage +=
-      ' expected ' + token.tokenToString(expected) + ' at col ' + token.pos;
+    errorMessage += ` expected ${token.tokenToString(expected)} at col ${
+      token.pos
+    }`;
 
     this.error(token, errorMessage);
   }
@@ -227,7 +226,7 @@ export default class Parser {
         ) {
           // Tag with options
           if (!this.parseOptions(score)) return false;
-          this.tags.push(attributeNameToken.value + '<' + score + '>');
+          this.tags.push(`${attributeNameToken.value}<${score}>`);
           return true;
         }
         this.lexer.next();
@@ -242,11 +241,7 @@ export default class Parser {
           this.negateOperator(operatorToken);
         }
         this.numericsFilters.push(
-          attributeNameToken.value +
-            ' ' +
-            operatorToken.value +
-            ' ' +
-            valToken.value
+          `${attributeNameToken.value} ${operatorToken.value} ${valToken.value}`
         );
         return true;
       } else if (this.lexer.get().type === 'Token_Facet_Separator') {
@@ -274,11 +269,9 @@ export default class Parser {
 
           // TODO handle negative
           this.numericsFilters.push(
-            attributeNameToken.value +
-              ':' +
-              valToken.value +
-              ' TO ' +
+            `${attributeNameToken.value}:${valToken.value} TO ${
               this.lexer.get().value
+            }`
           );
           this.lexer.next();
           this.termType = 'Term_Numeric';
@@ -290,58 +283,39 @@ export default class Parser {
 
         if (negative) {
           if (isTag) {
-            this.tags.push('-' + valToken.value + '<' + score + '>');
+            this.tags.push(`-${valToken.value}<${score}>`);
           } else {
             this.facetFilters.push(
-              '-' +
-                attributeNameToken.value +
-                ':' +
-                valToken.value +
-                '<' +
-                score +
-                '>'
+              `-${attributeNameToken.value}:${valToken.value}<${score}>`
             );
           }
         } else if (valToken.value[0] === '-' || valToken.value[0] === '\\') {
           if (isTag) {
-            this.tags.push('\\' + valToken.value + '<' + score + '>');
+            this.tags.push(`\\${valToken.value}<${score}>`);
           } else {
             this.facetFilters.push(
-              '\\' +
-                attributeNameToken.value +
-                ':' +
-                valToken.value +
-                '<' +
-                score +
-                '>'
+              `\\${attributeNameToken.value}:${valToken.value}<${score}>`
             );
           }
+        } else if (isTag) {
+          this.tags.push(`${valToken.value}<${score}>`);
         } else {
-          if (isTag) {
-            this.tags.push(valToken.value + '<' + score + '>');
-          } else {
-            this.facetFilters.push(
-              attributeNameToken.value +
-                ':' +
-                valToken.value +
-                '<' +
-                score +
-                '>'
-            );
-          }
+          this.facetFilters.push(
+            `${attributeNameToken.value}:${valToken.value}<${score}>`
+          );
         }
         return true;
       }
       // Tag without options
       if (negative) {
-        this.tags.push('-' + attributeNameToken.value + '<' + score + '>');
+        this.tags.push(`-${attributeNameToken.value}<${score}>`);
       } else if (
         attributeNameToken.value[0] === '-' ||
         attributeNameToken.value[0] === '\\'
       ) {
-        this.tags.push('\\' + attributeNameToken.value + '<' + score + '>');
+        this.tags.push(`\\${attributeNameToken.value}<${score}>`);
       } else {
-        this.tags.push(attributeNameToken.value + '<' + score + '>');
+        this.tags.push(`${attributeNameToken.value}<${score}>`);
       }
       this.termType = 'Term_Tag';
       return true;

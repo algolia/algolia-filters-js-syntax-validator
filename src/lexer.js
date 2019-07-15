@@ -170,7 +170,7 @@ export default class Lexer {
     }
 
     while (i < s.length) {
-      let token = this.readToken(s, i);
+      const token = this.readToken(s, i);
       this.addToken(token);
 
       if (token.type === 'Token_Error') {

@@ -32,7 +32,7 @@ export default class Token {
       Token_Operator: 'numeric operator',
       Term_Tag: 'tag filter',
       Term_Numeric: 'numeric filter',
-      Term_Facet: 'tag filter'
+      Term_Facet: 'tag filter',
     };
   }
 
