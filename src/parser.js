@@ -1,6 +1,10 @@
 import Lexer from './lexer';
 
 export default class Parser {
+  constructor(options = { withHighlight: false }) {
+    this.withHighlight = options.withHighlight;
+  }
+
   parse(s) {
     this.lexer = new Lexer();
     this.termType = 'Term_None';
@@ -8,13 +12,13 @@ export default class Parser {
     this.tags = [];
     this.numericsFilters = [];
     this.facetFilters = [];
-    this.groups = [];
     this.foundAND = false;
     this.foundOR = false;
+    this.isHighlighted = false;
 
     const response = {
       html: '',
-      errorMessage: '',
+      errorMessage: ''
     };
 
     if (s.length === 0) {
@@ -216,7 +220,9 @@ export default class Parser {
       if (
         this.lexer.get().type === 'Token_Operator' ||
         this.lexer.get().type === 'Token_Open_Angled_Bracket' ||
-        this.lexer.get().type === 'Token_Close_Angled_Bracket'
+        this.lexer.get().type === 'Token_Close_Angled_Bracket' ||
+        this.lexer.get().type === 'Token_Open_Highlight' ||
+        this.lexer.get().type === 'Token_Close_Highlight'
       ) {
         // NUM
         const operatorToken = this.lexer.get();
@@ -230,10 +236,22 @@ export default class Parser {
           return true;
         }
         this.lexer.next();
-        if (this.lexer.get().type !== 'Token_Num') {
+        if (
+          this.lexer.get().type !== 'Token_Num' &&
+          this.lexer.get().type !== 'Token_Open_Highlight'
+        ) {
           this.unexpectedToken(this.lexer.get(), 'Token_Num');
           return false;
         }
+
+        if (
+          this.withHighlight &&
+          this.lexer.get().type === 'Token_Open_Highlight'
+        ) {
+          this.isHighlighted = true;
+          this.lexer.next();
+        }
+
         const valToken = this.lexer.get();
         this.lexer.next();
         this.termType = 'Term_Numeric';
@@ -243,6 +261,19 @@ export default class Parser {
         this.numericsFilters.push(
           `${attributeNameToken.value} ${operatorToken.value} ${valToken.value}`
         );
+
+        if (this.withHighlight && this.isHighlighted) {
+          if (this.lexer.get().type !== 'Token_Close_Highlight') {
+            this.unexpectedToken(this.lexer.get(), 'Token_Close_Highlight');
+            return false;
+          }
+
+          this.lexer.next();
+
+          if (this.lexer.get().type === 'Token_Num') {
+            this.lexer.next();
+          }
+        }
         return true;
       } else if (this.lexer.get().type === 'Token_Facet_Separator') {
         // Facet or Range

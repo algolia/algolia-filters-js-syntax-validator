@@ -33,6 +33,8 @@ export default class Token {
       Term_Tag: 'tag filter',
       Term_Numeric: 'numeric filter',
       Term_Facet: 'tag filter',
+      Token_Open_Highlight: '<b>',
+      Token_Close_Highlight: '</b>'
     };
   }
 

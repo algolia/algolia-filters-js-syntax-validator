@@ -6,7 +6,7 @@ expect.extend({
   toBeValid(received) {
     return {
       message: () => `expected ${received} to be a valid filter`,
-      pass: received.errorMessage.length === 0,
+      pass: received.errorMessage.length === 0
     };
   },
   toBeInvalidWith(received, argument) {
@@ -14,9 +14,9 @@ expect.extend({
       message: () =>
         `expected ${received} to be a invalid filter and fails with: "${argument}" got "${received.errorMessage}"`,
       pass:
-        received.errorMessage.length > 0 && received.errorMessage === argument,
+        received.errorMessage.length > 0 && received.errorMessage === argument
     };
-  },
+  }
 });
 
 describe('Parser', () => {
@@ -232,5 +232,13 @@ describe('Parser', () => {
     expect(parser.parse('name : "-value"')).toBeValid();
     expect(parser.parse('\\-value')).toBeValid();
     expect(parser.parse('name : \\-value')).toBeValid();
+  });
+
+  it('parse highlighted numeric filters', () => {
+    const parserWithHighlight = new Parser({ withHighlight: true });
+
+    expect(parserWithHighlight.parse('price > 50')).toBeValid();
+    expect(parserWithHighlight.parse('price > <b>42</b>')).toBeValid();
+    expect(parserWithHighlight.parse('price > <b>50</b>42')).toBeValid();
   });
 });

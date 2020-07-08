@@ -71,6 +71,31 @@ export default class Lexer {
       s[i + 2] === 'D'
     ) {
       return new Token('Token_AND', s.substr(i, startPos - i), null, i);
+    } else if (
+      startPos - i === 3 &&
+      s[i + 0] === '<' &&
+      s[i + 1] === 'b' &&
+      s[i + 2] === '>'
+    ) {
+      return new Token(
+        'Token_Open_Highlight',
+        s.substr(i, startPos - i),
+        null,
+        i
+      );
+    } else if (
+      startPos - i === 4 &&
+      s[i + 0] === '<' &&
+      s[i + 1] === '/' &&
+      s[i + 2] === 'b' &&
+      s[i + 3] === '>'
+    ) {
+      return new Token(
+        'Token_Close_Highlight',
+        s.substr(i, startPos - i),
+        null,
+        i
+      );
     } else {
       return new Token(
         onlyNum ? 'Token_Num' : 'Token_String',
@@ -126,7 +151,16 @@ export default class Lexer {
       return new Token('Token_Operator', '=', null, i);
     } else if (s[i] === '<') {
       // < or <=
-      if (s.length > i + 1 && s[i + 1] === '=')
+      if (
+        s.length > i + 3 &&
+        s[i + 1] === '/' &&
+        s[i + 2] === 'b' &&
+        s[i + 3] === '>'
+      )
+        return new Token('Token_Close_Highlight', '</b>', null, i);
+      else if (s.length > i + 2 && s[i + 1] === 'b' && s[i + 2] === '>')
+        return new Token('Token_Open_Highlight', '<b>', null, i);
+      else if (s.length > i + 1 && s[i + 1] === '=')
         return new Token('Token_Operator', '<=', null, i);
       return new Token('Token_Open_Angled_Bracket', '<', null, i);
     } else if (s[i] === '>') {

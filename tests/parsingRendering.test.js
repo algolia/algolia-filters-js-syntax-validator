@@ -6,9 +6,9 @@ expect.extend({
   toHaveThisHtmlOutput(received, argument) {
     return {
       message: () => `expected ${received.html} got ${argument}`,
-      pass: received.html === argument,
+      pass: received.html === argument
     };
-  },
+  }
 });
 
 describe('Parser', () => {
@@ -365,6 +365,24 @@ describe('Parser', () => {
     );
     expect(parser.parse('name : \\-value')).toHaveThisHtmlOutput(
       '<span class="token First_Token"></span><span class="token-spaces"></span><span class="token Token_String">name</span><span class="token-spaces"> </span><span class="token Token_Facet_Separator">:</span><span class="token-spaces"> </span><span class="token Token_String">\\-value</span><span class="token-spaces"></span><span class="token Token_EOF">E</span><span class="token-spaces"></span>'
+    );
+  });
+
+  it('render highlighted numeric filters', () => {
+    const parserWithHighlight = new Parser({ withHighlight: true });
+
+    expect(parserWithHighlight.parse('price > 50')).toHaveThisHtmlOutput(
+      '<span class="token First_Token"></span><span class="token-spaces"></span><span class="token Token_String">price</span><span class="token-spaces"> </span><span class="token Token_Close_Angled_Bracket">></span><span class="token-spaces"> </span><span class="token Token_Num">50</span><span class="token-spaces"></span><span class="token Token_EOF">E</span><span class="token-spaces"></span>'
+    );
+
+    expect(parserWithHighlight.parse('price > <b>50</b>')).toHaveThisHtmlOutput(
+      '<span class="token First_Token"></span><span class="token-spaces"></span><span class="token Token_String">price</span><span class="token-spaces"> </span><span class="token Token_Close_Angled_Bracket">></span><span class="token-spaces"> </span><span class="token Token_Open_Highlight"><b></span><span class="token-spaces"></span><span class="token Token_Num">50</span><span class="token-spaces"></span><span class="token Token_Close_Highlight"></b></span><span class="token-spaces"></span><span class="token Token_EOF">E</span><span class="token-spaces"></span>'
+    );
+
+    expect(
+      parserWithHighlight.parse('price > <b>50</b>50')
+    ).toHaveThisHtmlOutput(
+      '<span class="token First_Token"></span><span class="token-spaces"></span><span class="token Token_String">price</span><span class="token-spaces"> </span><span class="token Token_Close_Angled_Bracket">></span><span class="token-spaces"> </span><span class="token Token_Open_Highlight"><b></span><span class="token-spaces"></span><span class="token Token_Num">50</span><span class="token-spaces"></span><span class="token Token_Close_Highlight"></b></span><span class="token-spaces"></span><span class="token Token_Num">50</span><span class="token-spaces"></span><span class="token Token_EOF">E</span><span class="token-spaces"></span>'
     );
   });
 });
