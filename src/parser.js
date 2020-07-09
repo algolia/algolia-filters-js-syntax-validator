@@ -1,8 +1,12 @@
 import Lexer from './lexer';
 
 export default class Parser {
+  constructor(options = { withHighlight: false }) {
+    this.withHighlight = options.withHighlight;
+  }
+
   parse(s) {
-    this.lexer = new Lexer();
+    this.lexer = new Lexer({ withHighlight: this.withHighlight });
     this.termType = 'Term_None';
     this.firstTermToken = null;
     this.tags = [];

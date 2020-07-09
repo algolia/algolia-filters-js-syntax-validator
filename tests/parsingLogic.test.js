@@ -233,4 +233,13 @@ describe('Parser', () => {
     expect(parser.parse('\\-value')).toBeValid();
     expect(parser.parse('name : \\-value')).toBeValid();
   });
+
+  it('parse highlighted numeric filters', () => {
+    const parserWithHighlight = new Parser({ withHighlight: true });
+
+    expect(parserWithHighlight.parse('price > 50')).toBeValid();
+    expect(parserWithHighlight.parse('price > <b>42</b>')).toBeValid();
+    expect(parserWithHighlight.parse('price > <b>50</b>42')).toBeValid();
+    expect(parserWithHighlight.parse('price > <b>50.3</b>42')).toBeValid();
+  });
 });
