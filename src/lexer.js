@@ -1,10 +1,11 @@
 import Token from './token';
 
 export default class Lexer {
-  constructor() {
+  constructor(options = { withHighlight: false }) {
     this.tokens = [];
     this.currentPos = 0;
     this.lastToken = null;
+    this.withHighlight = options.withHighlight;
   }
 
   get(i = 0) {
@@ -36,6 +37,29 @@ export default class Lexer {
     );
   }
 
+  highlightSize(s, i) {
+    if (!this.withHighlight) return 0;
+    if (
+      i <= s.length - 3 &&
+      s[i] === '<' &&
+      s[i + 1] === 'b' &&
+      s[i + 2] === '>'
+    ) {
+      return 3;
+    }
+
+    if (
+      i <= s.length - 4 &&
+      s[i] === '<' &&
+      s[i + 1] === '/' &&
+      s[i + 2] === 'b' &&
+      s[i + 3] === '>'
+    ) {
+      return 4;
+    }
+    return 0;
+  }
+
   readTokenValue(s, i) {
     let onlyNum = true;
     let nbDot = 0;
@@ -43,14 +67,20 @@ export default class Lexer {
 
     for (
       startPos = i;
-      startPos < s.length && !this.isSeparator(s[startPos]);
+      startPos < s.length &&
+      (!this.isSeparator(s[startPos]) || this.highlightSize(s, startPos) > 0);
       startPos++
     ) {
+      const highlightSize = this.highlightSize(s, startPos);
       onlyNum =
         onlyNum &&
-        ((s[startPos] >= '0' && s[startPos] <= '9') ||
+        (highlightSize > 0 ||
+          (s[startPos] >= '0' && s[startPos] <= '9') ||
           (startPos === i && s[startPos] === '-') ||
           (startPos > i && s[startPos] === '.' && ++nbDot === 1));
+      if (highlightSize > 0) {
+        startPos += highlightSize - 1;
+      }
     }
 
     if (startPos - i === 2 && s[i + 0] === 'O' && s[i + 1] === 'R') {
@@ -124,7 +154,7 @@ export default class Lexer {
   readToken(s, i) {
     if (s[i] === '=') {
       return new Token('Token_Operator', '=', null, i);
-    } else if (s[i] === '<') {
+    } else if (s[i] === '<' && !this.highlightSize(s, i) > 0) {
       // < or <=
       if (s.length > i + 1 && s[i + 1] === '=')
         return new Token('Token_Operator', '<=', null, i);
